@@ -7,6 +7,8 @@
 
 A HyperOS ROM porting tool for Xiaomi/Redmi devices. It covers the common workflow: unpacking, patch processing, feature adaptation, repacking, and OTA package output.
 
+**This fork targets Windows as the primary runtime** (PowerShell / cmd; WSL is not required). At runtime the tool detects the host OS and picks binaries from `bin/windows`, `bin/linux`, or `bin/macos`. Linux/macOS support is best-effort and not the main tested path.
+
 > Windows-oriented fork/renaming of [toraidl/HyperOS-Port-Python](https://github.com/toraidl/HyperOS-Port-Python).
 
 ---
@@ -52,14 +54,14 @@ A HyperOS ROM porting tool for Xiaomi/Redmi devices. It covers the common workfl
 ## ⚙️ Prerequisites
 
 - **Python 3.10+**
-- **Windows 10/11 x64** (native PowerShell; WSL is not required)
+- **Windows 10/11 x64** (primary supported platform; native PowerShell; WSL is not required)
 - **Java 17+** (for APK tooling)
-- **OTA Tools**: Included in the `otatools/` directory.
+- **OTA Tools**: download from the GitHub Release `assets` tag, or use a local `otatools/` directory.
 
-> On Windows, tools are resolved from `bin/windows/<arch>`, `bin/flash/platform-tools-windows`,
-> and `PATH`. Linux ELF files are skipped automatically. Run
-> `powershell -ExecutionPolicy Bypass -File tools/setup_windows.ps1` to install native
-> partition tools and payload-dumper-go.
+> **Runtime behavior**
+> - On Windows: tools are resolved from `bin/windows` (and `bin/flash/platform-tools-windows`) with `.exe`; Linux ELF files are skipped automatically.
+> - On Linux/macOS: the same code switches to `bin/linux` / `bin/macos`, but this repo is mainly verified on Windows.
+> - First-time Windows setup: `powershell -ExecutionPolicy Bypass -File tools/setup_windows.ps1`.
 
 ---
 

@@ -7,6 +7,8 @@
 
 一个面向小米/红米设备的 HyperOS ROM 移植工具。覆盖常见移植流程：解包、补丁处理、功能适配、重新打包与 OTA 升级包产出。
 
+**本仓库以 Windows 为主要运行环境**（PowerShell / cmd，无需 WSL）。代码在运行时会自动识别当前系统，并选择 `bin/windows`、`bin/linux` 或 `bin/macos` 下的对应工具；非 Windows 平台仅作兼容，不保证完整验证。
+
 > 基于 [toraidl/HyperOS-Port-Python](https://github.com/toraidl/HyperOS-Port-Python) 的 Windows 分支整理与重命名。
 
 ---
@@ -51,15 +53,14 @@
 ## ⚙️ 前置条件
 
 - **Python 3.10+**
-- **Windows 10/11 x64**（推荐原生 PowerShell，不需要 WSL）
-- **Python 3.10+** 和 **Java 17+**（APK 工具需要）
-- **OTA 工具**: 已内置在 `otatools/` 目录中。
+- **Windows 10/11 x64**（主要支持平台，推荐原生 PowerShell，不需要 WSL）
+- **Java 17+**（APK 工具需要）
+- **OTA 工具**: 可从 GitHub Release 的 `assets` 下载，或使用本地已有的 `otatools/` 目录。
 
-> Windows 说明：仓库会优先查找 `bin/windows/<arch>`、`bin/flash/platform-tools-windows`
-> 和 `PATH` 中的工具。Linux ELF 文件会被自动跳过，避免误调用。首次使用可运行
-> `powershell -ExecutionPolicy Bypass -File tools/setup_windows.ps1`。脚本会自动下载
-> [Rprop/aosp15_partition_tools](https://github.com/Rprop/aosp15_partition_tools) 的
-> Windows `lpmake/lpunpack/simg2img`，并校验 PE 文件头。
+> **执行逻辑说明**
+> - 在 Windows 上运行：工具从 `bin/windows`（及 `bin/flash/platform-tools-windows`）解析，扩展名 `.exe`；Linux ELF 会被跳过。
+> - 在 Linux/macOS 上运行：会自动改用 `bin/linux` / `bin/macos`，但本仓库主要在 Windows 上验证。
+> - 首次在 Windows 使用可运行：`powershell -ExecutionPolicy Bypass -File tools/setup_windows.ps1`。
 
 ---
 
