@@ -5,8 +5,15 @@ from typing import Optional
 
 
 class OtaToolsManager:
-    # Hardcoded URL for otatools download
-    DEFAULT_URL = "https://github.com/toraidl/HyperOS-Port-Python/releases/download/assets/otatools.zip"
+    # Prefer this fork's Release assets; fall back to upstream if missing here
+    DEFAULT_URL = (
+        "https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python"
+        "/releases/download/assets/otatools.zip"
+    )
+    FALLBACK_URL = (
+        "https://github.com/toraidl/HyperOS-Port-Python"
+        "/releases/download/assets/otatools.zip"
+    )
 
     def __init__(self, tools_dir: Path | None = None):
         project_root = Path(__file__).resolve().parents[2]
@@ -37,53 +44,49 @@ class OtaToolsManager:
             True if the download and extraction was successful, False otherwise
         """
         if url is None:
-            url = self.DEFAULT_URL
+            # Try this fork first, then upstream asset host
+            urls = [self.DEFAULT_URL, self.FALLBACK_URL]
+        else:
+            urls = [url]
 
-        try:
-            # Create temporary path for download
-            temp_file = self.tools_dir.parent / "otatools_temp.zip"
-            
-            # Remove existing old temp file if exists
-            if temp_file.exists():
-                temp_file.unlink()
+        from .file_downloader import download_file
 
-            # Actually download the tools using our custom helper
-            from .file_downloader import download_file
-            
-            success = download_file(url, temp_file, self.logger)
-            if not success:
-                self.logger.error("Failed to download otatools.")
-                return False
+        temp_file = self.tools_dir.parent / "otatools_temp.zip"
+        success = False
+        for candidate in urls:
+            try:
+                if temp_file.exists():
+                    temp_file.unlink()
 
-            self.logger.info("Download completed. Extracting...")
+                self.logger.info(f"Downloading otatools from {candidate}")
+                if not download_file(candidate, temp_file, self.logger):
+                    continue
 
-            # Create the directory if it doesn't exist
-            self.tools_dir.mkdir(parents=True, exist_ok=True)
+                self.logger.info("Download completed. Extracting...")
+                self.tools_dir.mkdir(parents=True, exist_ok=True)
+                with zipfile.ZipFile(temp_file, "r") as zip_ref:
+                    zip_ref.extractall(self.tools_dir)
 
-            # Extract the zip file
-            with zipfile.ZipFile(temp_file, "r") as zip_ref:
-                zip_ref.extractall(self.tools_dir)
+                self.logger.info(f"otatools extracted to {self.tools_dir.resolve()}")
+                bin_dir = self.tools_dir / "bin"
+                if bin_dir.exists():
+                    for file in bin_dir.iterdir():
+                        if file.is_file():
+                            current_mode = file.stat().st_mode
+                            file.chmod(current_mode | 0o111)
+                    self.logger.info("Set execute permissions on otatools binaries")
 
-            self.logger.info(f"otatools extracted to {self.tools_dir.resolve()}")
+                if temp_file.exists():
+                    temp_file.unlink()
+                success = True
+                break
+            except Exception as e:
+                self.logger.error(f"Failed to download/extract from {candidate}: {e}")
+                continue
 
-            # Set execute permissions on bin directory files
-            bin_dir = self.tools_dir / "bin"
-            if bin_dir.exists():
-                for file in bin_dir.iterdir():
-                    if file.is_file():
-                        current_mode = file.stat().st_mode
-                        file.chmod(
-                            current_mode | 0o111
-                        )  # Add execute permission for user, group, and others
-                self.logger.info("Set execute permissions on otatools binaries")
-
-            # Remove the temporary zip file
-            temp_file.unlink()
-
-            return True
-        except Exception as e:
-            self.logger.error(f"Failed to download and extract otatools: {str(e)}")
-            return False
+        if not success:
+            self.logger.error("Failed to download otatools from all known sources.")
+        return success
 
     def ensure_otatools(self) -> bool:
         """
