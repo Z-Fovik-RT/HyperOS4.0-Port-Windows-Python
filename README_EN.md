@@ -133,17 +133,17 @@ Prepare your Stock ROM and Port ROM ZIP files (or just Stock ROM for Official Mo
 
 **OTA/Recovery Mode (Default):**
 ```bash
-sudo python3 main.py --stock <path_to_stock_zip> --port <path_to_port_zip>
+python main.py --stock <path_to_stock_zip> --port <path_to_port_zip>
 ```
 
 **Official Modification Mode (Modify Stock ROM only):**
 ```bash
-sudo python3 main.py --stock <path_to_stock_zip>
+python main.py --stock <path_to_stock_zip>
 ```
 
 **Hybrid/Fastboot Mode (Super Image):**
 ```bash
-sudo python3 main.py --stock <path_to_stock_zip> --port <path_to_port_zip> --pack-type super
+python main.py --stock <path_to_stock_zip> --port <path_to_port_zip> --pack-type super
 ```
 
 ---
@@ -156,8 +156,8 @@ sudo python3 main.py --stock <path_to_stock_zip> --port <path_to_port_zip> --pac
 | :--- | :--- | :--- |
 | `--stock` | **(Required)** Path to the Stock ROM (Base) | N/A |
 | `--port` | **(Optional)** Path to the Port ROM. If omitted, tool runs in **Official Modification mode**. | N/A |
-| `--pack-type` | Output format: `payload` or `super` | from config |
-| `--fs-type` | Filesystem type: `erofs` or `ext4` | from config |
+| `--pack-type` | Output format: `payload` or `super` | `payload` (or from config) |
+| `--fs-type` | Filesystem type: `erofs` or `ext4` | `erofs` (or from config) |
 | `--ksu` | Inject KernelSU into `init_boot`/`boot` | from config |
 | `--work-dir` | Working directory for extraction/patching | `build` |
 | `--clean` | Clean work directory before starting | `false` |
@@ -173,7 +173,7 @@ sudo python3 main.py --stock <path_to_stock_zip> --port <path_to_port_zip> --pac
 | `--enable-diff-report` | Generate artifact diff report (files/props/APK changes) | `false` |
 | `--diff-report` | Output path for artifact diff report JSON | `build/diff-report.json` |
 | `--custom-avb-chain` | Enable custom AVB chain rebuild (stock-profiled footer/vbmeta rebuild + verification) | `false` |
-| `--resume-from-packer` | Resume from a saved repack checkpoint and jump directly to packaging | `false` |
+| `--resume-from-packer` | Resume from a saved repack checkpoint and jump directly to **repacking** | `false` |
 
 ---
 
@@ -238,8 +238,8 @@ Control device-specific settings including wild_boost, pack type, and KSU.
 
 **CLI Overrides:**
 ```bash
-# Override pack type and filesystem
-sudo python3 main.py --stock stock.zip --port port.zip --pack-type super --fs-type ext4
+# Override pack type and filesystem (Windows: plain python, no sudo)
+python main.py --stock stock.zip --port port.zip --pack-type super --fs-type ext4
 ```
 
 ### 3. Wild Boost Support
@@ -300,7 +300,7 @@ Restores **China-exclusive features** (NFC, Mi Wallet, XiaoAi) to EU/Global ROMs
    ```
 3. **Apply**:
    ```bash
-   sudo python3 main.py ... --eu-bundle eu_localization_bundle_v1.0.zip
+   python main.py ... --eu-bundle eu_localization_bundle_v1.0.zip
    ```
 
 ---

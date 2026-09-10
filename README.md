@@ -171,7 +171,7 @@ python main.py --stock <底包路径> --port <移植包路径> --pack-type super
 | `--enable-diff-report` | 生成产物差异报告（前后文件/属性/APK变化） | `false` |
 | `--diff-report` | 差异报告 JSON 输出路径 | `build/diff-report.json` |
 | `--custom-avb-chain` | 启用“自定义 AVB 验证链”（按 stock AVB 拓扑重建 footer/vbmeta 并校验） | `false` |
-| `--resume-from-packer` | 从已保存的 repack 检查点恢复，直接进入打包阶段 | `false` |
+| `--resume-from-packer` | 从已保存的 repack 检查点恢复，直接进入**重打包**阶段 | `false` |
 
 ---
 
@@ -236,8 +236,8 @@ python main.py --stock <底包路径> --port <移植包路径> --pack-type super
 
 **CLI 覆盖示例:**
 ```bash
-# 覆盖打包类型和文件系统
-sudo python3 main.py --stock stock.zip --port port.zip --pack-type super --fs-type ext4
+# 覆盖打包类型和文件系统（Windows 直接用 python，不要 sudo）
+python main.py --stock stock.zip --port port.zip --pack-type super --fs-type ext4
 ```
 
 ### 3. 狂暴引擎支持
@@ -302,7 +302,7 @@ sudo python3 main.py --stock stock.zip --port port.zip --pack-type super --fs-ty
    ```
 3. **应用**:
    ```bash
-   sudo python3 main.py ... --eu-bundle eu_localization_bundle_v1.0.zip
+   python main.py ... --eu-bundle eu_localization_bundle_v1.0.zip
    ```
 
 ---
