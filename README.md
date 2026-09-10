@@ -1,11 +1,13 @@
 # 🚀 HyperOS4.0-Port-Windows-Python
 
-[![GitHub stars](https://img.shields.io/github/stars/toraidl/HyperOS-Port-Python?style=flat)](https://github.com/toraidl/HyperOS-Port-Python/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/toraidl/HyperOS-Port-Python?style=flat)](https://github.com/toraidl/HyperOS-Port-Python/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python?style=flat)](https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python?style=flat)](https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python/network/members)
 
 **中文 (Chinese)** | [English](README_EN.md)
 
 一个面向小米/红米设备的 HyperOS ROM 移植工具。覆盖常见移植流程：解包、补丁处理、功能适配、重新打包与 OTA 升级包产出。
+
+> 基于 [toraidl/HyperOS-Port-Python](https://github.com/toraidl/HyperOS-Port-Python) 的 Windows 分支整理与重命名。
 
 ---
 
@@ -65,7 +67,7 @@
 
 ### 1. 安装
 ```bash
-git clone https://github.com/yourusername/HyperOS4.0-Port-Windows-Python.git
+git clone https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python.git
 cd HyperOS4.0-Port-Windows-Python
 # 安装依赖
 pip install -r requirements.txt

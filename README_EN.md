@@ -1,11 +1,13 @@
 # 🚀 HyperOS4.0-Port-Windows-Python
 
-[![GitHub stars](https://img.shields.io/github/stars/toraidl/HyperOS-Port-Python?style=flat)](https://github.com/toraidl/HyperOS-Port-Python/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/toraidl/HyperOS-Port-Python?style=flat)](https://github.com/toraidl/HyperOS-Port-Python/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python?style=flat)](https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python?style=flat)](https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python/network/members)
 
 [中文 (Chinese)](README.md) | **English**
 
 A HyperOS ROM porting tool for Xiaomi/Redmi devices. It covers the common workflow: unpacking, patch processing, feature adaptation, repacking, and OTA package output.
+
+> Windows-oriented fork/renaming of [toraidl/HyperOS-Port-Python](https://github.com/toraidl/HyperOS-Port-Python).
 
 ---
 
@@ -65,7 +67,7 @@ A HyperOS ROM porting tool for Xiaomi/Redmi devices. It covers the common workfl
 
 ### 1. Installation
 ```bash
-git clone https://github.com/toraidl/HyperOS4.0-Port-Windows-Python.git
+git clone https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python.git
 cd HyperOS4.0-Port-Windows-Python
 # Install dependencies
 pip install -r requirements.txt

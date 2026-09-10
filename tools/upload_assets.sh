@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ================= 配置区 =================
-REPO="toraidl/HyperOS-Port-Python"
+REPO="Z-Fovik-RT/HyperOS4.0-Port-Windows-Python"
 TAG="assets"
 # =========================================
 

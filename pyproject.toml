@@ -27,10 +27,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/toraidl/HyperOS-Port-Python"
-Documentation = "https://github.com/toraidl/HyperOS-Port-Python#readme"
-Repository = "https://github.com/toraidl/HyperOS-Port-Python"
-Issues = "https://github.com/toraidl/HyperOS-Port-Python/issues"
+Homepage = "https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python"
+Documentation = "https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python#readme"
+Repository = "https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python"
+Issues = "https://github.com/Z-Fovik-RT/HyperOS4.0-Port-Windows-Python/issues"
 
 [project.scripts]
 hyperos-port = "main:main"
