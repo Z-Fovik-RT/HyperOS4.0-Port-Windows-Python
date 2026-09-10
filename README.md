@@ -437,20 +437,3 @@ pre-commit run --all-files
 6. 推送到分支 (`git push origin feature/新功能`)
 7. 创建 Pull Request
 
----
-
-## 🤝 特别鸣谢
-
-本项目主要由 AI 协作完成，包括 **Gemini 3.1 Pro**、**GPT-5.3**、**KM2.5**、**QWEN3.5** 等模型与助手。
-
-**特别感谢:**
-- [HyperCeiler](https://github.com/ReChronoRain/HyperCeiler/)
-- [OemPorts10T-PIF](https://github.com/Danda420/OemPorts10T-PIF)
-- [FrameworkPatcher](https://github.com/FrameworksForge/FrameworkPatcher)
-- [xiaomi.eu](https://xiaomi.eu)
-
----
-
-## 📜 许可证
-
-基于 [Unlicense](LICENSE) 发布。完全免费，可任意用于任何用途。

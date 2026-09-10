@@ -437,21 +437,3 @@ pre-commit run --all-files
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
----
-
-## 🤝 Acknowledgments
-
-This project was primarily completed with AI collaboration, including
-**Gemini 3.1 Pro**, **GPT-5.3**, **KM2.5**, **QWEN3.5**, and related assistants.
-
-**Special Thanks:**
-- [HyperCeiler](https://github.com/ReChronoRain/HyperCeiler/)
-- [OemPorts10T-PIF](https://github.com/Danda420/OemPorts10T-PIF)
-- [FrameworkPatcher](https://github.com/FrameworksForge/FrameworkPatcher)
-- [xiaomi.eu](https://xiaomi.eu)
-
----
-
-## 📜 License
-
-Released under the [Unlicense](LICENSE). Completely free for any use.
