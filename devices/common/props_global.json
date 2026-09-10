@@ -1,0 +1,41 @@
+{
+    "description": "Global Property Templates for build.prop modification",
+    "common": {
+        "ro.build.date": "{build_date}",
+        "ro.build.date.utc": "{build_utc}",
+        "ro.odm.build.date": "{build_date}",
+        "ro.odm.build.date.utc": "{build_utc}",
+        "ro.vendor.build.date": "{build_date}",
+        "ro.vendor.build.date.utc": "{build_utc}",
+        "ro.system.build.date": "{build_date}",
+        "ro.system.build.date.utc": "{build_utc}",
+        "ro.product.build.date": "{build_date}",
+        "ro.product.build.date.utc": "{build_utc}",
+        "ro.system_ext.build.date": "{build_date}",
+        "ro.system_ext.build.date.utc": "{build_utc}",
+        "ro.product.device": "{base_code}",
+        "ro.product.product.name": "{base_code}",
+        "ro.product.odm.device": "{base_code}",
+        "ro.product.vendor.device": "{base_code}",
+        "ro.product.system.device": "{base_code}",
+        "ro.product.board": "{base_code}",
+        "ro.product.system_ext.device": "{base_code}",
+        "ro.mi.os.version.incremental": "{rom_version}",
+        "ro.build.version.incremental": "{rom_version}",
+        "ro.product.build.version.incremental": "{rom_version}",
+        "persist.sys.timezone": "Asia/Shanghai",
+        "ro.build.user": "{build_user}"
+    },
+    "eu_rom": {
+        "ro.product.mod_device": "{base_code}_xiaomieu_global",
+        "ro.build.host": "xiaomi.eu"
+    },
+    "global_rom": {
+        "ro.product.mod_device": "{global_mod_device}",
+        "ro.build.host": "{build_host}"
+    },
+    "cn_rom": {
+        "ro.product.mod_device": "{base_code}",
+        "ro.build.host": "{build_host}"
+    }
+}

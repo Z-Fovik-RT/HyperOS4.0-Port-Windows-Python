@@ -1,0 +1,16 @@
+{
+    "_comment": "通用配置 - 所有设备默认使用这些值",
+    "wild_boost": {
+        "enable": false
+    },
+    "pack": {
+        "type": "payload",
+        "fs_type": "erofs"
+    },
+    "ksu": {
+        "enable": false
+    },
+    "overrides": {
+        "skip_common_on_official": true
+    }
+}

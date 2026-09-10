@@ -1,0 +1,108 @@
+{
+    "replacements": [
+        {
+            "description": "System Overlays",
+            "type": "file",
+            "search_path": "product",
+            "match_mode": "recursive",
+            "ensure_exists": false,
+            "files": [
+                "AospFrameworkResOverlay.apk",
+                "MiuiFrameworkResOverlay.apk",
+                "MiuiCarrierConfigOverlay.apk",
+                "SettingsRroDeviceSystemUiOverlay.apk",
+                "DevicesAndroidOverlay.apk",
+                "DevicesOverlay.apk",
+                "SettingsRroDeviceHideStatusBarOverlay.apk",
+                "MiuiBiometricResOverlay.apk",
+                "MiuiFrameworkTelephonyResOverlay.apk"
+            ]
+        },
+        {
+            "description": "Audio Effects (MiSound)",
+            "type": "file",
+            "search_path": "product",
+            "match_mode": "recursive",
+            "ensure_exists": false,
+            "files": ["MiSound"]
+        },
+        {
+            "description": "Biometric Services",
+            "type": "file",
+            "search_path": "product/app",
+            "match_mode": "glob",
+            "ensure_exists": true,
+            "files": ["*Biometric*"]
+        },
+        {
+            "description": "Display Configuration Sync",
+            "type": "file",
+            "search_path": "product/etc/displayconfig",
+            "match_mode": "glob",
+            "ensure_exists": true,
+            "files": ["display_id*.xml"]
+        },
+        {
+            "description": "Device Features Sync",
+            "type": "file",
+            "search_path": "product/etc",
+            "match_mode": "exact",
+            "ensure_exists": true,
+            "files": ["device_features"]
+        },
+        {
+            "description": "Device Info Sync",
+            "type": "file",
+            "search_path": "product/etc",
+            "match_mode": "exact",
+            "ensure_exists": true,
+            "files": ["device_info.json"]
+        },
+        {
+            "description": "Bootanimation Sync",
+            "type": "file",
+            "search_path": "product/media",
+            "match_mode": "exact",
+            "ensure_exists": true,
+            "files": ["bootanimation.zip"]
+        },
+        {
+            "description": "OTA Certificate Sync",
+            "id": "ota_cert_sync",
+            "type": "copy_local",
+            "source": "devices/common/otacerts.zip",
+            "target": "otacerts.zip"
+        },
+        {
+            "description": "Camera Sync",
+            "id": "camera_sync",
+            "type": "file",
+            "search_path": "product/priv-app",
+            "match_mode": "exact",
+            "ensure_exists": true,
+            "files": ["MiuiCamera"]
+        },
+        {
+            "description": "Fix Face ID for OS3.0.300+ on A15",
+            "id": "fix_face_id_os3",
+            "type": "copy_local",
+            "source": "devices/common/Pearl_OS3_Biometric.apk",
+            "target": "Biometric.apk",
+            "condition_port_os_version_incremental_gte": "OS3.0.300",
+            "condition_base_android_version_gte": 15,
+            "condition_base_android_version_lt": 16
+        },
+        {
+            "description": "Fix VoiceTrigger for OS3.0+ on A15",
+            "id": "fix_voice_trigger_os3",
+            "type": "file",
+            "search_path": "product",
+            "match_mode": "recursive",
+            "ensure_exists": true,
+            "files": ["VoiceTrigger"],
+            "condition_port_os_version_incremental_gte": "OS3.0.0",
+            "condition_base_android_version_gte": 15,
+            "condition_base_android_version_lt": 16
+        }
+    ]
+}

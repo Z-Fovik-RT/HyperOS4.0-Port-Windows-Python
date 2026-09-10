@@ -1,0 +1,107 @@
+import logging
+import zipfile
+from pathlib import Path
+from typing import Optional
+
+
+class OtaToolsManager:
+    # Hardcoded URL for otatools download
+    DEFAULT_URL = "https://github.com/toraidl/HyperOS-Port-Python/releases/download/assets/otatools.zip"
+
+    def __init__(self, tools_dir: Path | None = None):
+        project_root = Path(__file__).resolve().parents[2]
+        self.tools_dir = tools_dir or (project_root / "otatools")
+        self.logger = logging.getLogger("OtaToolsManager")
+
+    def check_otatools_exists(self) -> bool:
+        """Check if the otatools directory exists with basic components."""
+        if not self.tools_dir.exists():
+            return False
+        
+        # Check for some common directories that should be in otatools
+        required_dirs = ["bin", "lib64"]
+        for d in required_dirs:
+            if not (self.tools_dir / d).exists():
+                return False
+                
+        return True
+
+    def download_otatools(self, url: Optional[str] = None) -> bool:
+        """
+        Download and extract otatools from given URL (or default URL).
+
+        Args:
+            url: URL to download otatools.zip from (optional, uses default if not provided)
+
+        Returns:
+            True if the download and extraction was successful, False otherwise
+        """
+        if url is None:
+            url = self.DEFAULT_URL
+
+        try:
+            # Create temporary path for download
+            temp_file = self.tools_dir.parent / "otatools_temp.zip"
+            
+            # Remove existing old temp file if exists
+            if temp_file.exists():
+                temp_file.unlink()
+
+            # Actually download the tools using our custom helper
+            from .file_downloader import download_file
+            
+            success = download_file(url, temp_file, self.logger)
+            if not success:
+                self.logger.error("Failed to download otatools.")
+                return False
+
+            self.logger.info("Download completed. Extracting...")
+
+            # Create the directory if it doesn't exist
+            self.tools_dir.mkdir(parents=True, exist_ok=True)
+
+            # Extract the zip file
+            with zipfile.ZipFile(temp_file, "r") as zip_ref:
+                zip_ref.extractall(self.tools_dir)
+
+            self.logger.info(f"otatools extracted to {self.tools_dir.resolve()}")
+
+            # Set execute permissions on bin directory files
+            bin_dir = self.tools_dir / "bin"
+            if bin_dir.exists():
+                for file in bin_dir.iterdir():
+                    if file.is_file():
+                        current_mode = file.stat().st_mode
+                        file.chmod(
+                            current_mode | 0o111
+                        )  # Add execute permission for user, group, and others
+                self.logger.info("Set execute permissions on otatools binaries")
+
+            # Remove the temporary zip file
+            temp_file.unlink()
+
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to download and extract otatools: {str(e)}")
+            return False
+
+    def ensure_otatools(self) -> bool:
+        """
+        Check if otatools exists and is complete; if not, download it.
+
+        Returns:
+            True if otatools is available or successfully downloaded, False otherwise
+        """
+        if self.check_otatools_exists():
+            self.logger.info(f"otatools already exists and is complete at {self.tools_dir.resolve()}")
+            return True
+
+        if self.tools_dir.exists():
+            self.logger.warning(
+                f"otatools directory exists but is incomplete or missing critical binaries. Re-downloading from {self.DEFAULT_URL}"
+            )
+        else:
+            self.logger.info(
+                f"otatools directory does not exist. Attempting to download from {self.DEFAULT_URL}"
+            )
+        return self.download_otatools()

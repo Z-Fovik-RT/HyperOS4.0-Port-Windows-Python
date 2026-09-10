@@ -1,0 +1,115 @@
+{
+    "device_code": "pudding",
+    "super_size": 13411287040,
+    "dynamic_partitions": [
+        "odm",
+        "product",
+        "system",
+        "system_dlkm",
+        "system_ext",
+        "vendor",
+        "vendor_dlkm",
+        "mi_ext"
+    ],
+    "firmware_partitions": [
+        "abl",
+        "aop",
+        "aop_config",
+        "bluetooth",
+        "boot",
+        "countrycode",
+        "cpucp",
+        "cpucp_dtb",
+        "dcp",
+        "devcfg",
+        "dsp",
+        "dtbo",
+        "featenabler",
+        "hyp",
+        "hyp_ac_config",
+        "idmanager",
+        "imagefv",
+        "init_boot",
+        "keymaster",
+        "modem",
+        "modemfirmware",
+        "multiimgqti",
+        "pdp",
+        "pdp_cdb",
+        "pvmfw",
+        "qtvm_dtbo",
+        "qupfw",
+        "recovery",
+        "secretkeeper",
+        "shrm",
+        "soccp",
+        "soccp_dcd",
+        "soccp_debug",
+        "spuservice",
+        "tme_config",
+        "tme_fw",
+        "tme_seq_patch",
+        "tz",
+        "tz_ac_config",
+        "tz_qti_config",
+        "uefi",
+        "uefisecapp",
+        "vbmeta",
+        "vbmeta_system",
+        "vendor_boot",
+        "vm-bootsys",
+        "xbl",
+        "xbl_ac_config",
+        "xbl_config",
+        "xbl_ramdump"
+    ],
+    "physical_partition_sizes": {
+        "boot": 100663296,
+        "countrycode": 1048576,
+        "dtbo": 23068672,
+        "init_boot": 8388608,
+        "pvmfw": 1048576,
+        "recovery": 104857600,
+        "vendor_boot": 100663296
+    },
+    "avb_hash_partitions": [
+        "countrycode",
+        "dtbo",
+        "init_boot",
+        "pvmfw",
+        "vendor_boot"
+    ],
+    "avb_hashtree_partitions": [
+        "mi_ext",
+        "odm",
+        "product",
+        "system",
+        "system_dlkm",
+        "system_ext",
+        "vendor",
+        "vendor_dlkm"
+    ],
+    "avb_chain_partitions": [
+        {
+            "name": "boot",
+            "rollback_index_location": 3
+        },
+        {
+            "name": "recovery",
+            "rollback_index_location": 1
+        },
+        {
+            "name": "vbmeta_system",
+            "rollback_index_location": 2
+        }
+    ],
+    "avb_strict_partitions": [
+        "boot",
+        "countrycode",
+        "dtbo",
+        "init_boot",
+        "pvmfw",
+        "recovery",
+        "vendor_boot"
+    ]
+}

@@ -1,0 +1,15 @@
+{
+  "_comment": "Controls product/etc/build.prop sync from stock -> target. Sync updates only existing target keys with differing values. Keys listed in skip_keys are never synced and remain handled by later property logic.",
+  "product_build_prop_sync": {
+    "skip_keys": [
+      "ro.build.version.incremental",
+      "ro.miui.ui.version.code",
+      "ro.miui.ui.version.name",
+      "ro.product.build.version.release",
+      "ro.product.build.version.release_or_codename",
+      "ro.product.build.version.sdk",
+      "ro.product.build.version.sdk_full",
+      "ro.product.build.id"
+    ]
+  }
+}

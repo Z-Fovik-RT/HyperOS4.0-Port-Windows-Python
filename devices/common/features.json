@@ -1,0 +1,35 @@
+{
+    "xml_features": {
+        "support_AI_display": true,
+        "support_screen_enhance_engine": true,
+        "support_SR_for_image_display": true,
+        "support_aod_fullscreen": true,
+        "support_aod_aon": true,
+        "support_manual_dimming": true,
+        "support_main_xiaoai": true,
+        "support_ota_validate": false,
+        "support_power_consumption": true
+    },
+    "build_props": {
+        "vendor": {
+            "ro.vendor.media.video.frc.support": "true"
+        },
+        "product": {
+            "debug.game.video.speed": "true",
+            "debug.game.video.support": "true",
+            "persist.miui.extm.dm_opt.enable": "true",
+            "persist.sys.oemports10t.utils.pif.autoupdate": "true",
+            "persist.sys.oemports10t.utils.fingerprint": "true",
+            "persist.sys.oemports10t.utils.bootloader": "true",
+            "persist.sys.oemports10t.utils-debug": "false",
+            "persist.prophook.com.android.thememanager": "SOC_MODEL:8750,MODEL:2512BPNDAC,PRODUCT:nezha,DEVICE:nezha",
+            "persist.prophook.com.miui.mediaeditor": "SOC_MODEL:8750,MODEL:2512BPNDAC,PRODUCT:nezha,DEVICE:nezha",
+            "persist.prophook.com.miui.notes": "SOC_MODEL:8750,MODEL:2512BPNDAC,PRODUCT:nezha,DEVICE:nezha",
+            "persist.prophook.com.miui.securitycenter": "SOC_MODEL:8750,MODEL:2512BPNDAC,PRODUCT:nezha,DEVICE:nezha",
+            "persist.prophook.com.miui.voiceassist": "SOC_MODEL:8750,MODEL:2512BPNDAC,PRODUCT:nezha,DEVICE:nezha",
+            "persist.prophook.com.miui.voiceassistProxy": "SOC_MODEL:8750,MODEL:2512BPNDAC,PRODUCT:nezha,DEVICE:nezha",
+            "persist.prophook.com.xiaomi.aiasst.vision": "SOC_MODEL:8750,MODEL:2512BPNDAC,PRODUCT:nezha,DEVICE:nezha",
+            "persist.prophook.com.xiaomi.aicr": "SOC_MODEL:8750,MODEL:2512BPNDAC,PRODUCT:nezha,DEVICE:nezha"
+        }
+    }
+}

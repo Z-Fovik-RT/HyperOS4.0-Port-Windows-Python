@@ -1,0 +1,13 @@
+{
+    "_comment": "Mayfly (小米 12S) 设备配置 - 覆盖通用配置的值",
+    "wild_boost": {
+        "enable": true
+    },
+    "pack": {
+        "type": "payload",
+        "fs_type": "erofs"
+    },
+    "ksu": {
+        "enable": true
+    }
+}

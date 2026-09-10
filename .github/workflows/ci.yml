@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev2
+      - "chore/**"
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt -r requirements-test.txt
+
+      - name: Compile source files
+        run: python -m compileall -q src tests main.py
+
+      - name: Run Ruff
+        run: |
+          python -m ruff check \
+            main.py \
+            tests \
+            src/app \
+            src/core/cache_manager.py \
+            src/core/packer.py \
+            src/core/conditions.py \
+            src/core/context.py \
+            src/core/props.py \
+            src/core/config_loader.py \
+            src/core/config_merger.py \
+            src/core/rom/package.py \
+            src/core/rom/extractors.py \
+            src/core/rom/utils.py \
+            src/core/monitoring/__init__.py \
+            src/core/monitoring/console_ui.py \
+            src/core/monitoring/plugin_integration.py \
+            src/core/monitoring/workflow_integration.py \
+            src/core/rom_metadata.py \
+            src/core/tooling.py \
+            src/core/workspace.py \
+            src/core/modifiers/__init__.py \
+            src/core/modifiers/base_modifier.py \
+            src/core/modifiers/framework/base.py \
+            src/core/modifiers/framework/modifier.py \
+            src/core/modifiers/framework/tasks.py \
+            src/core/modifiers/plugin_system.py \
+            src/core/modifiers/plugins/feature_unlock.py \
+            src/core/modifiers/smali_args.py \
+            src/core/modifiers/transaction.py \
+            src/core/modifiers/unified_modifier.py
+
+      - name: Run curated mypy checks
+        run: python -m mypy --config-file mypy-curated.ini
+
+      - name: Run pytest
+        run: python -m pytest -q

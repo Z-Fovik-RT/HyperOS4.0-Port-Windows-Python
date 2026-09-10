@@ -1,0 +1,48 @@
+[
+  {
+    "hwc": "CN",
+    "basic": {
+      "cpu": {
+        "zh": "第五代骁龙®8至尊版移动平台",
+        "en": "Snapdragon 8 Elite Gen 5"
+      },
+      "battery": "7000mAh",
+      "camera": {
+        "zh": "5000万像素 超清三摄",
+        "en": "50MP+50MP+50MP"
+      },
+      "screen": {
+        "zh": "6.3 英寸 AMOLED",
+        "en": "6.3″ AMOLED"
+      },
+      "resolution": "2656×1220"
+    },
+    "camera": {
+      "front_camera": "50MP",
+      "rear_camera": "50MP+50MP+50MP"
+    }
+  },
+  {
+    "hwc": ["GL", "IN"],
+    "basic": {
+      "cpu": {
+        "zh": "第五代骁龙®8至尊版移动平台",
+        "en": "Snapdragon 8 Elite Gen 5"
+      },
+      "battery": "6330mAh",
+      "camera": {
+        "zh": "5000万像素 超清三摄",
+        "en": "50MP+50MP+50MP"
+      },
+      "screen": {
+        "zh": "6.3 英寸 AMOLED",
+        "en": "6.3″ AMOLED"
+      },
+      "resolution": "2656×1220"
+    },
+    "camera": {
+      "front_camera": "50MP",
+      "rear_camera": "50MP+50MP+50MP"
+    }
+  }
+]

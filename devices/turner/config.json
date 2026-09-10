@@ -1,0 +1,5 @@
+{
+    "wild_boost": { "enable": false },
+    "pack": { "type": "super", "fs_type": "erofs", "super_size": 11811160064 },
+    "ksu": { "enable": false }
+}

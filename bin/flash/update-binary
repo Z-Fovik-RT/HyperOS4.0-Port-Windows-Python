@@ -1,0 +1,158 @@
+#!/sbin/sh
+
+OUTFD=/proc/self/fd/$2
+ZIPFILE="$3"
+ZIPNAME=${ZIPFILE##*/}
+ui_print() {
+  echo -e "ui_print $1\nui_print" >>$OUTFD
+}
+
+package_extract_file() {
+  ui_print "- 正在刷写分区 - Flashing $(echo $2 | cut -d '/' -f 6) "
+  unzip -p "$ZIPFILE" $1 >$2
+}
+
+package_extract_zstd() {
+  ui_print "- 正在刷写分区 - Flashing $(echo $2 | cut -d '/' -f 6) "
+  unzip -p "$ZIPFILE" $1 | /tmp/META-INF/zstd -c -d >$2
+}
+
+getVolumeKey() {
+	ui_print "- 监听音量键 按[+]选择"是" 按[-]选择"否""
+	ui_print "- Press Volume Key [+] "Yes" [-] "No""
+	keyInfo=true
+	while $keyInfo;do
+		keyInfo=$(getevent -qlc 1 |grep KEY_VOLUME)
+		if [ "$keyInfo" == "" ];then
+			continue
+		else
+			isUpKey=$(echo $keyInfo |grep KEY_VOLUMEUP)
+			[ "$isUpKey" != "" ] && return 0 || return 1
+			break
+		fi
+	done
+}
+
+checkDevice() {
+	myDevice=$(getprop ro.product.name)
+	romDevice=device_code
+	ui_print "========================="
+	ui_print " "
+	
+	ui_print "       设备代号/Device Code：$myDevice"
+	ui_print " "
+	ui_print "       ROM代号/ROM Code：$romDevice"
+	ui_print " "
+	ui_print "       底包版本/BASE Version：baseversion"
+	ui_print " "
+	ui_print "       移植版本/PORT Version：portversion"
+	ui_print " "
+	ui_print " "
+	ui_print "========================="
+	if [ "$myDevice" != "$romDevice" ];then
+		ui_print "- 设备代号检验不通过，请再次核实此包是否对应你的机型"	
+		ui_print "- Device code verification failed, please double-check whether this package corresponds to your device model."
+		ui_print "- 如果刷错包导致变砖，你将自己承担其后果，是否继续刷入？"
+		ui_print "- If flashing the wrong package leads to bricking, you will bear the consequences yourself. Do you want to continue flashing?"
+		if ! getVolumeKey ;then
+			ui_print "- Terminate flashing."
+			exit 1
+		else
+			ui_print "- Continue flashing."
+		fi
+	fi
+}
+
+[ -d /tmp ] && rm -rf /tmp
+mkdir -p /tmp
+unzip "$ZIPFILE" META-INF/zstd -d /tmp
+chmod -R 0755 /tmp
+
+checkDevice
+
+# 检查是否存在打包错误
+isDamaged=$(unzip -l $ZIPFILE |grep "patcherror.txt")
+if [ "$isDamaged" != "" ];then
+	ui_print "该ROM存在打包错误，终止刷入"
+	ui_print "The ROM has packaging errors. Terminate the flashing process."
+	exit 1
+fi
+
+if [ "$ZIPNAME" = "package.zip" ]; then
+    AdbSideLoad="true"
+else
+    AdbSideLoad=""
+fi
+
+if [ "$AdbSideLoad" = "" ]; then
+	ui_print "- 正在校验MD5 - Verifying MD5 checksum."
+	ui_print " "
+	# MD5 is now the 5th field: Device_Hybrid_Version_Patch_MD5_Time.zip
+	RealMd5=$(echo $ZIPNAME | cut -d '_' -f 5)
+	ui_print " - ROM正确的MD5值为 - The correct MD5 value: $RealMd5"
+	ui_print " "
+	LocalMd5=$(md5sum $ZIPFILE | head -c10)
+	ui_print "- ROM经校验MD5值为 - The real MD5 value: $LocalMd5"
+	ui_print " "
+	if [ "$RealMd5" != "$LocalMd5" ]; then
+		ui_print "- MD5校验不通过，终止刷机"
+		ui_print "- MD5 verification failed. Abort the flashing process."
+		ui_print " "
+		exit 1
+	fi
+	ui_print "- MD5校验通过 - MD5 verification successful."
+	ui_print " "
+else
+	ui_print "- ADB Sideload 跳过MD5校验"
+	ui_print "- Skip MD5 verification for ADB Sideload."
+	ui_print " "
+fi
+ui_print " "
+ui_print "- 开始刷机 - Flashing process started."
+ui_print " "
+
+#boot
+package_extract_file "boot.img" "/dev/block/bootdevice/by-name/boot_a"
+package_extract_file "boot.img" "/dev/block/bootdevice/by-name/boot_b"
+package_extract_file "firmware-update/dtbo.img" "/dev/block/bootdevice/by-name/dtbo_a"
+package_extract_file "firmware-update/dtbo.img" "/dev/block/bootdevice/by-name/dtbo_b"
+
+
+# firmware
+
+
+#super cust image
+#package_extract_file "firmware-update/cust.img" "/dev/block/bootdevice/by-name/cust"
+package_extract_zstd "super.zst" "/dev/block/bootdevice/by-name/super"
+
+
+#REMAP_START
+[ -e /dev/block/mapper/odm_a ] && lptools unmap odm_a && lptools map odm_a
+[ -e /dev/block/mapper/mi_ext_a ] && lptools unmap mi_ext_a && lptools map mi_ext_a
+[ -e /dev/block/mapper/system_a ] && lptools unmap system_a && lptools map system_a
+[ -e /dev/block/mapper/vendor_a ] && lptools unmap vendor_a && lptools map vendor_a
+[ -e /dev/block/mapper/product_a ] && lptools unmap product_a && lptools map product_a
+[ -e /dev/block/mapper/odm_dlkm_a ] && lptools unmap odm_dlkm_a && lptools map odm_dlkm_a
+[ -e /dev/block/mapper/system_ext_a ] && lptools unmap system_ext_a && lptools map system_ext_a
+[ -e /dev/block/mapper/vendor_dlkm_a ] && lptools unmap vendor_dlkm_a && lptools map vendor_dlkm_a
+[ -e /dev/block/mapper/system_dlkm_a ] && lptools unmap system_dlkm_a && lptools map system_dlkm_a
+#REMAP_END
+
+ui_print "- 清除缓存 - Clearing cache."
+rm -rf /data/dalvik-cache/arm/*
+rm -rf /data/dalvik-cache/arm64/*
+rm -rf /data/system/package_cache/*
+ui_print " "
+ui_print " "
+ui_print "- 刷机完毕 - Flashing process completed."
+
+ui_print " "
+ui_print " "
+ui_print "- 如有红色挂载报错请直接忽略"
+ui_print "- 如有红色挂载报错请直接忽略"
+ui_print "- 如有红色挂载报错请直接忽略"
+ui_print "- If there is a red mounting error, please ignore it."
+ui_print " "
+ui_print " "
+bootctl set-active-boot-slot a
+exit 0

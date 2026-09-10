@@ -1,0 +1,10 @@
+{
+    "_comment": "Pudding (小米 17) 设备配置",
+    "pack": {
+        "super_size": 13411287040
+    },
+    "cache": {
+        "_comment": "Set to true to enable partition-level caching (disabled by default)",
+        "partitions": false
+    }
+}

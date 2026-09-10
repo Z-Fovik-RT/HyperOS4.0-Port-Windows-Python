@@ -1,0 +1,6 @@
+id=hyperos_flutter_libs_turner
+name=HyperOS Flutter libs test
+version=v1.0
+versionCode=1
+author=local
+description=Replace /system/lib64/libhwui.so and /system_ext/lib64/libhyper_os_flutter.so (arm64 only)

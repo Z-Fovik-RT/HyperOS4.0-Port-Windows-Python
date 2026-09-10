@@ -1,0 +1,440 @@
+from __future__ import annotations
+
+import concurrent.futures
+import logging
+import shutil
+import zipfile
+from pathlib import Path
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
+
+from src.utils.payload_dumper import PayloadDumperOutput
+from src.utils.shell import ShellRunner
+
+from .constants import ANDROID_LOGICAL_PARTITIONS, RomType
+from .utils import compute_file_hash, load_single_prop_file, sort_prop_priority
+
+if TYPE_CHECKING:
+    from src.core.cache_manager import PortRomCacheManager
+
+
+class RomPackage:
+    """Represents a ROM package and provides extraction/processing methods."""
+
+    def __init__(
+        self,
+        file_path: Union[str, Path],
+        work_dir: Union[str, Path],
+        label: str = "Rom",
+        cache_manager: Optional["PortRomCacheManager"] = None,
+    ):
+        """Initialize RomPackage.
+
+        Args:
+            file_path: Path to the ROM file or directory.
+            work_dir: Working directory for extraction.
+            label: Label for logging purposes.
+            cache_manager: Optional cache manager for Port ROM caching.
+        """
+        self.props: Dict[str, str] = {}
+        self.prop_history: Dict[str, List[Tuple[str, str]]] = {}
+        self.path: Path = Path(file_path).resolve()
+        self.work_dir: Path = Path(work_dir).resolve()
+        self.label: str = label
+        self.logger: logging.Logger = logging.getLogger(label)
+        self.shell: ShellRunner = ShellRunner()
+        self.cache_manager: Optional["PortRomCacheManager"] = cache_manager
+
+        # Payload metadata extracted from --json output
+        self.payload_info: Optional[PayloadDumperOutput] = None
+
+        # Directory structure definition
+        self.images_dir: Path = self.work_dir / "images"
+        self.extracted_dir: Path = self.work_dir / "extracted"
+        self.config_dir: Path = self.work_dir / "extracted" / "config"
+
+        self.rom_type: RomType = RomType.UNKNOWN
+        self._detect_type()
+
+    def _detect_type(self) -> None:
+        """Detects ROM type (Zip, Payload, or Local Directory)."""
+        if not self.path.exists():
+            raise FileNotFoundError(f"Path not found: {self.path}")
+
+        if self.path.is_dir():
+            self.rom_type = RomType.LOCAL_DIR
+            self.logger.info(f"[{self.label}] Source is a local directory.")
+            # If in directory mode, assume it's the working directory
+            self.work_dir = self.path
+            self.images_dir = self.path / "images"  # Adapting to AOSP structure
+            if not self.images_dir.exists():
+                self.images_dir = self.path  # Compatible if img is in root
+            return
+
+        # Simple Zip detection logic
+        if zipfile.is_zipfile(self.path):
+            with zipfile.ZipFile(self.path, "r") as z:
+                namelist = z.namelist()
+                if "payload.bin" in namelist:
+                    self.rom_type = RomType.PAYLOAD
+                elif any(x.endswith("new.dat.br") for x in namelist):
+                    self.rom_type = RomType.BROTLI
+                elif "images/super.img" in namelist or "super.img" in namelist:
+                    self.rom_type = RomType.FASTBOOT
+                elif any(x.startswith("images/super.img.") for x in namelist):
+                    # xiaomi.eu ROMs with split sparse super images (e.g., super.img.0, super.img.1)
+                    self.rom_type = RomType.FASTBOOT
+        elif self.path.suffix == ".tgz":
+            self.rom_type = RomType.FASTBOOT
+
+        self.logger.info(f"[{self.label}] Detected Type: {self.rom_type.name}")
+
+    def extract_images(self, partitions: Optional[List[str]] = None) -> None:
+        """
+        Level 1 Extraction: Convert Zip/Payload to Img.
+
+        Args:
+            partitions:
+                - If None (Base ROM): Extract ALL imgs from payload.bin (including firmware),
+                  but only automatically extract (Level 2) ANDROID_LOGICAL_PARTITIONS.
+                - If list specified (Port ROM): Extract only specific imgs, and extract them.
+        """
+        if self.rom_type == RomType.LOCAL_DIR:
+            self.logger.info(f"[{self.label}] Local dir mode, skipping payload extraction.")
+            # Local mode, try extracting logical partitions
+            self._batch_extract_files(partitions or ANDROID_LOGICAL_PARTITIONS)
+            return
+
+        self.images_dir.mkdir(parents=True, exist_ok=True)
+
+        # === Check global cache for Port ROM ===
+        # Only use global cache for Port ROM (label="Port") when cache_manager is provided
+        if self.label == "Port" and self.cache_manager and partitions:
+            cached_partitions = []
+            for part in partitions:
+                if self.cache_manager.is_partition_cached(self.path, part):
+                    cached_partitions.append(part)
+
+            if cached_partitions:
+                self.logger.info(
+                    f"[{self.label}] Found {len(cached_partitions)} cached partitions: {cached_partitions}"
+                )
+                # Restore cached partitions
+                for part in cached_partitions:
+                    target_dir = self.extracted_dir / part
+                    if self.cache_manager.restore_partition(self.path, part, target_dir):
+                        self.logger.info(f"[{self.label}] Restored {part} from global cache")
+
+                # Extract remaining partitions that are not cached
+                remaining = [p for p in partitions if p not in cached_partitions]
+                if not remaining:
+                    self.logger.info(
+                        f"[{self.label}] All partitions restored from cache, skipping extraction"
+                    )
+                    return
+                partitions = remaining
+
+        # === Check if source has changed and should extract new images ===
+        # Compute hash of source file for change detection
+        source_hash_path = self.work_dir / "source_file.hash"
+
+        # Compare with previously stored hash
+        source_changed = True  # Assume change by default
+        current_source_hash = compute_file_hash(self.path)
+
+        if source_hash_path.exists():
+            try:
+                with open(source_hash_path, "r") as f:
+                    saved_hash = f.read().strip()
+                source_changed = saved_hash != current_source_hash
+            except Exception:
+                self.logger.warning(f"[{self.label}] Could not read hash file, re-extracting.")
+                source_changed = True  # Error reading hash file, consider as changed
+        else:
+            source_changed = True  # No hash file exists, assume source change
+
+        if source_changed:
+            self.logger.info(f"[{self.label}] Source file changed, starting re-extraction...")
+            # Clean up old extracted data to avoid stale cache
+            if self.extracted_dir.exists():
+                self.logger.info(f"[{self.label}] Cleaning up old extracted directory...")
+                shutil.rmtree(self.extracted_dir)
+            if self.config_dir.exists():
+                shutil.rmtree(self.config_dir)
+            # Clean up old images as well for consistency
+            if any(self.images_dir.iterdir()):
+                self.logger.info(f"[{self.label}] Cleaning up old images directory...")
+                for item in self.images_dir.iterdir():
+                    if item.is_file():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+        else:
+            self.logger.info(f"[{self.label}] Source file unchanged, checking cached data...")
+
+            # Check if cached images exist and are not empty
+            # Enhanced check: ensure at least 'system.img' (or 'system_a.img') exists
+            # Also for FASTBOOT, if super.img still exists, it means extraction was incomplete.
+            has_images = any(self.images_dir.iterdir())
+            has_system = (self.images_dir / "system.img").exists() or (
+                self.images_dir / "system_a.img"
+            ).exists()
+            incomplete_fastboot = (
+                self.rom_type == RomType.FASTBOOT and (self.images_dir / "super.img").exists()
+            )
+
+            if has_images and has_system and not incomplete_fastboot:
+                self.logger.info(f"[{self.label}] Using cached images from previous extraction.")
+                self._batch_extract_files(partitions or ANDROID_LOGICAL_PARTITIONS)
+                return  # Nothing to do if cached extraction is valid
+            else:
+                self.logger.info(
+                    f"[{self.label}] Source unchanged but cached images are missing or incomplete, re-extracting..."
+                )
+                source_changed = True
+
+        # Execute extraction if source changed
+        from .extractors import extract_brotli, extract_fastboot, extract_payload
+
+        try:
+            if self.rom_type == RomType.PAYLOAD:
+                # Extract with metadata for Stock ROM to enable auto-configuration
+                extract_metadata = self.label == "Stock"
+                self.payload_info = extract_payload(self, partitions, extract_metadata)
+            elif self.rom_type == RomType.BROTLI:
+                extract_brotli(self, partitions)
+            elif self.rom_type == RomType.FASTBOOT:
+                extract_fastboot(self, partitions)
+
+        except Exception as e:
+            self.logger.error(f"Image extraction failed: {e}")
+            raise
+
+        self._batch_extract_files(partitions or ANDROID_LOGICAL_PARTITIONS)
+
+        # After successful extraction, save the source hash to avoid reprocessing
+        if source_changed:
+            try:
+                with open(source_hash_path, "w") as f:
+                    f.write(current_source_hash)
+                self.logger.info(
+                    f"[{self.label}] Saved source file hash for future change detection."
+                )
+            except Exception as e:
+                self.logger.warning(f"[{self.label}] Could not save source hash file: {e}")
+
+    def _batch_extract_files(self, candidates: List[str]) -> None:
+        """Batch call extract_partition_to_file (Parallel optimization).
+
+        Args:
+            candidates: List of partition names to extract.
+        """
+        self.logger.info(f"[{self.label}] Processing file extraction for logical partitions...")
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            futures = []
+            for part in candidates:
+                img_path = self.images_dir / f"{part}.img"
+                if not img_path.exists():
+                    img_path = self.images_dir / f"{part}_a.img"
+
+                if img_path.exists():
+                    futures.append(executor.submit(self.extract_partition_to_file, part))
+                else:
+                    self.logger.debug(
+                        f"[{self.label}] Partition image {part} not found, skipping extract."
+                    )
+
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    future.result()
+                except Exception as e:
+                    self.logger.error(f"Partition extraction failed: {e}")
+                    raise
+
+    def extract_partition_to_file(self, part_name: str) -> Optional[Path]:
+        """Level 2 Extraction: Extract Img to folder, preserving SELinux config.
+
+        Args:
+            part_name: Name of the partition to extract.
+
+        Returns:
+            Path to the extracted directory, or None if extraction failed.
+        """
+        target_dir = self.extracted_dir / part_name
+        config_exists = (self.config_dir / f"{part_name}_fs_config").exists()
+        has_content = target_dir.exists() and any(target_dir.iterdir())
+
+        if has_content and config_exists:
+            self.logger.info(f"[{self.label}] Partition {part_name} already extracted.")
+            return target_dir
+
+        img_path = self.images_dir / f"{part_name}.img"
+        if not img_path.exists():
+            # Fallback for old cases or other ROM types, though fastboot should be normalized now
+            img_path = self.images_dir / f"{part_name}_a.img"
+            if not img_path.exists():
+                self.logger.warning(f"[{self.label}] Image {part_name}.img not found.")
+                return None
+
+        self.logger.info(f"[{self.label}] Extracting {part_name}.img to filesystem...")
+        target_dir.mkdir(parents=True, exist_ok=True)
+        self.config_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            erofs_tool = self.shell.get_binary_path("extract.erofs")
+            if not erofs_tool.is_absolute() or not erofs_tool.exists():
+                raise FileNotFoundError(
+                    "extract.erofs.exe is required to unpack EROFS images on Windows."
+                    " Place a native Windows build in bin\\windows or add it to PATH."
+                )
+            cmd = [
+                str(erofs_tool),
+                "-x",
+                "-i",
+                str(img_path),
+                "-o",
+                str(self.extracted_dir),
+            ]
+            self.shell.run(cmd, capture_output=True)
+
+            # Since img_path might still be system_a.img if normalization didn't happen,
+            # we handle the directory rename just in case
+            extracted_name = img_path.stem  # e.g., 'system' or 'system_a'
+            if extracted_name != part_name:
+                actual_dir = self.extracted_dir / extracted_name
+                if actual_dir.exists() and actual_dir.is_dir():
+                    if target_dir.exists():
+                        shutil.rmtree(target_dir)
+                    actual_dir.rename(target_dir)
+                    self.logger.info(f"[{self.label}] Renamed {extracted_name} to {part_name}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to extract {part_name}: {e}")
+            return None
+
+        # Robust config file detection
+        # Pattern search to handle both 'system_fs_config' and 'system_a_fs_config'
+        search_pattern = img_path.stem
+
+        possible_contexts = (
+            list(self.extracted_dir.glob(f"config/{search_pattern}_file_contexts"))
+            + list(target_dir.parent.glob(f"{search_pattern}_file_contexts"))
+            + list(target_dir.glob("*_file_contexts"))
+        )
+
+        possible_fs_config = (
+            list(self.extracted_dir.glob(f"config/{search_pattern}_fs_config"))
+            + list(target_dir.parent.glob(f"{search_pattern}_fs_config"))
+            + list(target_dir.glob("*_fs_config"))
+        )
+
+        if possible_contexts:
+            target_context = self.config_dir / f"{part_name}_file_contexts"
+            shutil.move(possible_contexts[0], target_context)
+
+        if possible_fs_config:
+            target_fs = self.config_dir / f"{part_name}_fs_config"
+            shutil.move(possible_fs_config[0], target_fs)
+
+        # Save partition to global cache (for Port ROM only)
+        if self.label == "Port" and self.cache_manager:
+            try:
+                self.cache_manager.store_partition(
+                    self.path,
+                    part_name,
+                    target_dir,
+                    metadata={
+                        "rom_type": self.rom_type.name,
+                        "extracted_at": str(Path().stat().st_mtime),
+                    },
+                )
+                self.logger.debug(f"[{self.label}] Cached partition {part_name} to global cache")
+            except Exception as e:
+                self.logger.warning(f"[{self.label}] Failed to cache partition {part_name}: {e}")
+
+        return target_dir
+
+    def get_config_files(self, part_name: str) -> Tuple[Path, Path]:
+        """Get config file paths for a partition.
+
+        Args:
+            part_name: Name of the partition.
+
+        Returns:
+            Tuple of (fs_config_path, file_contexts_path).
+        """
+        return (
+            self.config_dir / f"{part_name}_fs_config",
+            self.config_dir / f"{part_name}_file_contexts",
+        )
+
+    def parse_all_props(self) -> None:
+        """Scan and parse all build.prop files in extracted dir."""
+        if not self.extracted_dir.exists():
+            self.logger.warning(f"[{self.label}] Extracted dir not found, skipping props parsing.")
+            return
+
+        self.props = {}
+        self.prop_history = {}
+        self.logger.info(f"[{self.label}] Scanning and parsing all build.prop files...")
+
+        prop_files = list(self.extracted_dir.rglob("build.prop"))
+        if not prop_files:
+            self.logger.warning(f"[{self.label}] No build.prop files found.")
+            return
+
+        prop_files.sort(key=sort_prop_priority)
+        for prop_file in prop_files:
+            load_single_prop_file(
+                prop_file, self.extracted_dir, self.props, self.prop_history, self.logger
+            )
+
+        self.logger.info(
+            f"[{self.label}] Loaded {len(self.props)} properties from {len(prop_files)} files."
+        )
+
+    def export_props(self, output_path: Union[str, Path]) -> None:
+        """Export all props to file, including Override debug info.
+
+        Args:
+            output_path: Path to write the exported properties.
+        """
+        out_file = Path(output_path)
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        self.logger.info(f"[{self.label}] Exporting debug props to {out_file} ...")
+
+        if not self.props:
+            self.parse_all_props()
+
+        content = [
+            f"# DEBUG DUMP for {self.label}",
+            "# Generated by HyperOS Porting Tool",
+            "# ==========================================\n",
+        ]
+        for key in sorted(self.props.keys()):
+            history = self.prop_history.get(key, [])
+            final_val = self.props[key]
+            if len(history) > 1:
+                content.append(f"# [OVERRIDE DETECTED]\n# {key}")
+                for source, val in history:
+                    content.append(f"#   - {source}: {val}")
+                content.append(f"#   -> Final: {final_val}")
+            content.append(f"{key}={final_val}")
+
+        with open(out_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(content))
+        self.logger.info(f"[{self.label}] Debug props saved.")
+
+    def get_prop(self, key: str, default: Optional[str] = None) -> Optional[str]:
+        """Get property value. Triggers full load if cache is empty.
+
+        Args:
+            key: Property key to look up.
+            default: Default value if key not found.
+
+        Returns:
+            Property value or default.
+        """
+        if not self.props:
+            self.parse_all_props()
+        return self.props.get(key, default)

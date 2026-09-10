@@ -1,0 +1,60 @@
+{
+    "description": "CPU Core Affinity and Scheduler Configuration",
+    "sm8550": {
+        "persist.sys.miui_animator_sched.bigcores": "3-6",
+        "persist.sys.miui_animator_sched.sched_threads": "2",
+        "persist.sys.miui_animator_sched.big_prime_cores": "3-7",
+        "persist.vendor.display.miui.composer_boost": "4-7",
+        "persist.sys.brightmillet.enable": "true",
+        "persist.sys.millet.newversion": "true",
+        "ro.miui.affinity.sfre": "2-6",
+        "ro.miui.affinity.sfui": "2-6",
+        "ro.miui.affinity.sfuireset": "0-6",
+        "persist.sys.millet.handshake": "true"
+    },
+    "sm8450": {
+        "persist.sys.miui_animator_sched.bigcores": "4-7",
+        "persist.sys.miui_animator_sched.sched_threads": "2",
+        "persist.sys.miui_animator_sched.big_prime_cores": "4-7",
+        "persist.vendor.display.miui.composer_boost": "4-7",
+        "ro.miui.affinity.sfui": "4-7",
+        "ro.miui.affinity.sfre": "4-7"
+    },
+    "sm8250": {
+        "persist.sys.miui_animator_sched.bigcores": "4-7",
+        "persist.sys.miui_animator_sched.big_prime_cores": "4-7",
+        "ro.miui.affinity.sfui": "4-7"
+    },
+    "android_15": {
+        "ro.miui.affinity.sfui": "4-7",
+        "ro.miui.affinity.sfre": "4-7",
+        "ro.miui.affinity.sfuireset": "4-7",
+        "persist.sys.miui_animator_sched.bigcores": "4-7",
+        "persist.sys.miui_animator_sched.big_prime_cores": "4-7",
+        "persist.vendor.display.miui.composer_boost": "4-7"
+    },
+    "default": {
+        "persist.sys.miui_animator_sched.bigcores": "4-6",
+        "persist.sys.miui_animator_sched.big_prime_cores": "4-7",
+        "persist.sys.miui.sf_cores": "4-7",
+        "persist.sys.minfree_def": "73728,92160,110592,154832,482560,579072",
+        "persist.sys.minfree_6g": "73728,92160,110592,258048,663552,903168",
+        "persist.sys.minfree_8g": "73728,92160,110592,387072,1105920,1451520",
+        "persist.vendor.display.miui.composer_boost": "4-7"
+    },
+    "mt6991": {
+        "persist.sys.miui_animator_sched.bigcores": "4-7",
+        "persist.sys.miui_animator_sched.sched_threads": "2",
+        "persist.sys.miui_animator_sched.big_prime_cores": "7",
+        "persist.sys.miui.sf_cores": "4-7",
+        "persist.vendor.display.miui.composer_boost": "4-7",
+        "ro.miui.affinity.sfui": "4-7",
+        "ro.miui.affinity.sfre": "4-7",
+        "ro.miui.affinity.sfuireset": "0-7",
+        "persist.sys.minfree_def": "73728,92160,110592,154832,482560,579072",
+        "persist.sys.minfree_8g": "73728,92160,110592,387072,1105920,1451520",
+        "persist.sys.brightmillet.enable": "true",
+        "persist.sys.millet.newversion": "true",
+        "persist.sys.millet.handshake": "true"
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "xml_features": {
+        "support_wild_boost": true,
+        "support_wild_boost_bat_perf": true
+    },
+    "build_props": {
+        "product": {
+            "ro.product.spoofed.name": "mondrian",
+            "ro.spoofed.device": "mondrian",
+            "persist.prophook.com.xiaomi.joyose": "DEVICE:mondrian,PRODUCT:mondrian,MODEL:23013RK75C",
+            "persist.prophook.com.miui.powerkeeper": "DEVICE:mondrian,PRODUCT:mondrian,MODEL:23013RK75C",
+            "persist.sys.miui.unfairMemory.enable": "false"
+        }
+    }
+}

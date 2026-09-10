@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+# *.so - Keeping .so files as they are needed for otatools
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.env
+.venv
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+coverage.xml
+.coverage
+
+# Android/HyperOS Porting specific
+otatools/
+out/
+devices/**/*.img
+devices/**/*.apk
+!devices/**/override/**
+*.log
+*.img
+*.bin
+tmp/
+test/
+roms/
+# Exception for otatools library
+# !otatools/lib64/
+
+
+# Editor specific
+.idea/
+.vscode/
+*.swp
+*.bak
+*.odex
+*.vdex
+
+# KernelSU assets (downloaded online)
+assets/
+devices/fuxi/override/16/product/priv-app/MiuiExtraPhoto/MiuiExtraPhoto.apk
+mk_erofs.sh
+# Cache
+.cache/
+temp/
+.omg/
+.docs/
+.omx/
